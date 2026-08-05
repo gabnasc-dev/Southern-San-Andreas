@@ -1,0 +1,378 @@
+/* ==========================================================================
+   Detalhe do veículo — galeria + ficha técnica + contato
+   ========================================================================== */
+
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: var(--s6);
+  align-items: start;
+}
+
+/* --------------------------------------------------------------------------
+   Galeria
+   -------------------------------------------------------------------------- */
+
+.gallery { margin-bottom: var(--s6); }
+
+.gallery__stage {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  background: var(--ink-950);
+  border: 1px solid var(--ink-600);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.gallery__shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.gallery__shot[data-active="true"] { opacity: 1; }
+
+.gallery__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: var(--s2);
+  justify-items: center;
+  color: var(--slate-300);
+  font-size: var(--t-micro);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: repeating-linear-gradient(
+    135deg, var(--ink-900) 0 10px, var(--ink-950) 10px 20px
+  );
+}
+
+.gallery__tags {
+  position: absolute;
+  top: var(--s4);
+  left: var(--s4);
+  display: flex;
+  gap: var(--s2);
+  z-index: 2;
+}
+
+.gallery__counter {
+  position: absolute;
+  bottom: var(--s4);
+  right: var(--s4);
+  padding: 2px var(--s2);
+  background: var(--scrim-strong);
+  border-radius: var(--r-sm);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  color: var(--slate-200);
+  z-index: 2;
+}
+
+.gallery__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-content: center;
+  background: var(--scrim-strong);
+  border: 1px solid var(--ink-500);
+  border-radius: var(--r-md);
+  color: var(--slate-100);
+  cursor: pointer;
+  z-index: 2;
+  transition: border-color 0.15s, color 0.15s;
+}
+.gallery__nav:hover { border-color: var(--amber-500); color: var(--amber-400); }
+.gallery__nav--prev { left: var(--s4); }
+.gallery__nav--next { right: var(--s4); }
+
+.gallery__strip {
+  display: flex;
+  gap: var(--s2);
+  margin-top: var(--s2);
+  overflow-x: auto;
+  padding-bottom: var(--s1);
+  scrollbar-width: thin;
+}
+
+.gallery__thumb {
+  flex: 0 0 88px;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--ink-500);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  opacity: 0.55;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+.gallery__thumb:hover { opacity: 0.85; }
+.gallery__thumb[aria-current="true"] {
+  opacity: 1;
+  border-color: var(--amber-500);
+}
+.gallery__thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* --------------------------------------------------------------------------
+   Cabeçalho do anúncio
+   -------------------------------------------------------------------------- */
+
+.lede { margin-bottom: var(--s6); }
+
+.lede__name {
+  font-size: var(--t-h1);
+  font-stretch: 92%;
+  font-weight: 700;
+  margin: 0 0 var(--s3);
+}
+
+.lede__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+  font-size: var(--t-small);
+  color: var(--slate-400);
+}
+.lede__line i { font-style: normal; color: var(--ink-400); }
+
+/* --------------------------------------------------------------------------
+   Ficha técnica em grade
+   -------------------------------------------------------------------------- */
+
+.section { margin-bottom: var(--s7); }
+
+.section__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-bottom: var(--s4);
+}
+
+.section__title {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber-500);
+  white-space: nowrap;
+}
+
+.section__head .tick-rule { flex: 1; }
+
+/* 4 colunas fixas: são 8 campos, então fecham em duas linhas exatas. Com
+   auto-fit a última linha sobrava meio vazia e a ficha parecia truncada. */
+.datasheet {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--ink-600);
+  border: 1px solid var(--ink-600);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.datacell {
+  background: var(--ink-800);
+  padding: var(--s4);
+}
+
+.datacell__key {
+  display: block;
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate-400);
+  margin-bottom: var(--s1);
+}
+
+.datacell__value {
+  font-size: var(--t-lead);
+  font-weight: 600;
+  font-stretch: 96%;
+  color: var(--white);
+  line-height: 1.2;
+}
+
+.datacell__value--empty { color: var(--slate-300); font-size: var(--t-body); font-weight: 400; }
+
+.prose { color: var(--slate-200); line-height: 1.7; max-width: 68ch; }
+.prose--muted { color: var(--slate-300); font-style: italic; }
+
+/* --------------------------------------------------------------------------
+   Coluna lateral: preço e contato
+   -------------------------------------------------------------------------- */
+
+.aside { display: grid; gap: var(--s4); position: sticky; top: calc(60px + var(--s5)); }
+
+/* O bloco de preço é a leitura acesa do painel */
+.readout {
+  position: relative;
+  background: var(--ink-800);
+  border: 1px solid var(--amber-600);
+  border-radius: var(--r-lg);
+  padding: var(--s5);
+  overflow: hidden;
+}
+
+.readout::before {
+  content: '';
+  position: absolute;
+  inset: -40% -20% auto;
+  height: 140%;
+  background: radial-gradient(ellipse at top, var(--amber-glow), transparent 62%);
+  pointer-events: none;
+}
+
+.readout__key {
+  position: relative;
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--slate-400);
+}
+
+.readout__value {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  margin: var(--s2) 0 var(--s3);
+}
+
+.readout__currency { font-size: var(--t-lead); font-weight: 600; color: var(--amber-500); }
+
+.readout__amount {
+  font-size: var(--t-display);
+  font-weight: 700;
+  font-stretch: 90%;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  color: var(--amber-500);
+}
+
+.readout__scale {
+  position: relative;
+  display: block;
+  margin-bottom: var(--s3);
+  opacity: 0.7;
+}
+
+.readout__note { position: relative; font-size: var(--t-small); color: var(--slate-400); }
+
+.contact { display: grid; gap: var(--s3); }
+
+.contact__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--ink-600);
+  font-size: var(--t-small);
+}
+.contact__row:last-of-type { border-bottom: 0; }
+
+.contact__key {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate-400);
+  min-width: 74px;
+}
+
+.contact__value { color: var(--slate-100); word-break: break-word; }
+.contact__value--empty { color: var(--slate-300); }
+
+.owner {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding-bottom: var(--s3);
+  border-bottom: 1px solid var(--ink-600);
+  margin-bottom: var(--s2);
+}
+
+.owner__badge {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-content: center;
+  background: var(--ink-700);
+  border: 1px solid var(--ink-500);
+  border-radius: var(--r-sm);
+  font-weight: 700;
+  color: var(--amber-500);
+  text-transform: uppercase;
+}
+
+.owner__name { font-weight: 600; color: var(--white); }
+.owner__meta { font-size: var(--t-micro); color: var(--slate-500); letter-spacing: 0.1em; text-transform: uppercase; }
+
+.safety {
+  font-size: var(--t-small);
+  color: var(--slate-500);
+  padding: var(--s3);
+  border: 1px dashed var(--ink-500);
+  border-radius: var(--r-md);
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Relacionados
+   -------------------------------------------------------------------------- */
+
+.related { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4); }
+
+.related__item {
+  display: flex;
+  gap: var(--s3);
+  padding: var(--s3);
+  background: var(--ink-800);
+  border: 1px solid var(--ink-600);
+  border-radius: var(--r-md);
+  transition: border-color 0.15s;
+}
+.related__item:hover { border-color: var(--ink-400); }
+
+.related__thumb {
+  flex: 0 0 68px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  background: var(--ink-950);
+}
+
+.related__name { font-size: var(--t-small); font-weight: 600; color: var(--white); }
+.related__price { font-size: var(--t-small); color: var(--amber-500); font-weight: 600; }
+
+/* --------------------------------------------------------------------------
+   Responsivo
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 1000px) {
+  .detail { grid-template-columns: 1fr; }
+  /* O preço e o contato sobem: são o que decide a próxima ação */
+  .aside { position: static; order: -1; }
+  .related { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .gallery__nav { width: 32px; height: 32px; }
+  .datasheet { grid-template-columns: repeat(2, 1fr); }
+  .readout { padding: var(--s4); }
+}

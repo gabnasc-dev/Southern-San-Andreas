@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Entrar — Southern San Andreas{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}">{% endblock %}
+
+{% block content %}
+<div class="gate">
+  <header class="gate__head">
+    <p class="gate__eyebrow">Área do anunciante</p>
+    <h1 class="gate__title">Entrar</h1>
+    <p class="gate__note">
+      Você só precisa de conta para anunciar. Para procurar carro e falar com
+      vendedor, não precisa de nada.
+    </p>
+  </header>
+
+  {% if demo_user and demo_password %}
+    <div class="demo-note">
+      <p class="demo-note__title">Conta de demonstração</p>
+      <p class="demo-note__body">
+        Este é um projeto de portfólio. Entre com
+        <code>{{ demo_user }}</code> / <code>{{ demo_password }}</code>
+        para ver o painel do anunciante. Os anúncios e contatos são fictícios.
+      </p>
+      <button type="button" class="btn btn--ghost demo-note__fill"
+              data-demo-user="{{ demo_user }}" data-demo-password="{{ demo_password }}">
+        Preencher automaticamente
+      </button>
+    </div>
+  {% endif %}
+
+  <div class="gate__panel">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if loginForm.non_field_errors or loginForm.errors %}
+        <div class="form-errors" role="alert">
+          <ul>
+            {% for error in loginForm.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            {% for field in loginForm %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      {% include "_field.html" with field=loginForm.username %}
+      {% include "_field.html" with field=loginForm.password %}
+
+      <button type="submit" class="btn btn--primary btn--block btn--lg">Entrar</button>
+    </form>
+
+    <p class="gate__alt">
+      Ainda não tem conta? <a href="{% url 'register' %}">Criar conta</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  {% if demo_user and demo_password %}
+    <script>
+      document.querySelector('.demo-note__fill').addEventListener('click', function () {
+        document.getElementById('id_username').value = this.dataset.demoUser;
+        document.getElementById('id_password').value = this.dataset.demoPassword;
+        document.getElementById('id_password').focus();
+      });
+    </script>
+  {% endif %}
+{% endblock %}

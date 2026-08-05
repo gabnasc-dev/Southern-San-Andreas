@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Editar {{ object.title }} — Southern San Andreas{% endblock %}
+{% block page_modifier %}page--narrow{% endblock %}
+
+{% block content %}
+<nav class="crumbs" aria-label="Trilha">
+  <a href="{% url 'car_detail' object.pk %}" class="crumbs__back">
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    Voltar ao anúncio
+  </a>
+</nav>
+
+<header style="margin-bottom: var(--s6);">
+  <p class="gauge-label">Editando</p>
+  <h1 style="font-size: var(--t-h1); font-stretch: 92%; margin: var(--s2) 0;">
+    {{ object.title }}
+  </h1>
+</header>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {% include "_carform.html" %}
+
+  {% if object.photos.all %}
+    <fieldset class="form-section">
+      <legend class="form-section__title">
+        <span>Fotos já enviadas</span><span class="tick-rule" aria-hidden="true"></span>
+      </legend>
+      <div style="display:flex; gap:var(--s2); flex-wrap:wrap;">
+        {% for foto in object.photos.all %}
+          <img src="{{ foto.image.url }}" alt="" width="96" height="72"
+               style="width:96px; aspect-ratio:4/3; object-fit:cover; border:1px solid var(--ink-500); border-radius:var(--r-sm);">
+        {% endfor %}
+      </div>
+      <p class="field__help" style="margin-top: var(--s2);">
+        Para remover fotos adicionais, use o painel administrativo.
+      </p>
+    </fieldset>
+  {% endif %}
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn--primary btn--lg">Salvar alterações</button>
+    <a href="{% url 'car_detail' object.pk %}" class="btn btn--ghost btn--lg">Cancelar</a>
+    <a href="{% url 'car_delete' object.pk %}" class="btn btn--danger btn--lg" style="margin-left:auto;">Excluir anúncio</a>
+  </div>
+</form>
+{% endblock %}

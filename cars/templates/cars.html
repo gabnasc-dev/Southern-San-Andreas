@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% load static car_extras l10n %}
+
+{% block title %}Vitrine — Southern San Andreas{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/catalog.css' %}">{% endblock %}
+
+{% block content %}
+<div class="catalog">
+
+  {# ---------------------------------------------------------------- trilho #}
+  <form method="get" action="{% url 'cars_list' %}" class="rail" id="rail"
+        data-open="{% if active_filters %}true{% else %}false{% endif %}">
+
+    <button type="button" class="rail__toggle" data-rail-toggle
+            aria-expanded="{% if active_filters %}true{% else %}false{% endif %}"
+            aria-controls="rail">
+      <span>Filtros</span>
+      {% if active_filters %}<span class="rail__count">{{ active_filters }}</span>{% endif %}
+    </button>
+
+    <div class="rail__head">
+      <span class="rail__title">Filtros</span>
+      {% if active_filters %}
+        <a href="{% url 'cars_list' %}" class="rail__clear">Limpar</a>
+      {% endif %}
+    </div>
+
+    <div class="rail__body">
+      <div class="rail__group">
+        <label class="rail__legend" for="f-search">Busca</label>
+        <input type="text" id="f-search" name="search" placeholder="Marca, modelo, cor…"
+               value="{{ filter_form.search.value|default:'' }}"
+               {% if not filter_form.search.value %}data-empty{% endif %}>
+      </div>
+
+      <div class="rail__group">
+        <label class="rail__legend" for="f-brand">Marca</label>
+        <select id="f-brand" name="brand" {% if not filter_form.brand.value %}data-empty{% endif %}>
+          {% for value, label in filter_form.fields.brand.choices %}
+            <option value="{{ value }}" {% if filter_form.brand.value|stringformat:"s" == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="rail__group">
+        <span class="rail__legend">Preço (R$)</span>
+        <div class="rail__pair">
+          <input type="number" name="price_min" placeholder="mín" min="0" step="1000"
+                 aria-label="Preço mínimo"
+                 value="{{ filter_form.price_min.value|default:'' }}"
+                 {% if not filter_form.price_min.value %}data-empty{% endif %}>
+          <span class="rail__dash" aria-hidden="true">—</span>
+          <input type="number" name="price_max" placeholder="máx" min="0" step="1000"
+                 aria-label="Preço máximo"
+                 value="{{ filter_form.price_max.value|default:'' }}"
+                 {% if not filter_form.price_max.value %}data-empty{% endif %}>
+        </div>
+      </div>
+
+      <div class="rail__group">
+        <span class="rail__legend">Ano</span>
+        <div class="rail__pair">
+          <input type="number" name="year_min" placeholder="de" min="1900" max="2100"
+                 aria-label="Ano mínimo"
+                 value="{{ filter_form.year_min.value|default:'' }}"
+                 {% if not filter_form.year_min.value %}data-empty{% endif %}>
+          <span class="rail__dash" aria-hidden="true">—</span>
+          <input type="number" name="year_max" placeholder="até" min="1900" max="2100"
+                 aria-label="Ano máximo"
+                 value="{{ filter_form.year_max.value|default:'' }}"
+                 {% if not filter_form.year_max.value %}data-empty{% endif %}>
+        </div>
+      </div>
+
+      <div class="rail__group">
+        <label class="rail__legend" for="f-status">Estado</label>
+        <select id="f-status" name="status" {% if not filter_form.status.value %}data-empty{% endif %}>
+          {% for value, label in filter_form.fields.status.choices %}
+            <option value="{{ value }}" {% if filter_form.status.value == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="rail__group">
+        <label class="rail__legend" for="f-transmission">Câmbio</label>
+        <select id="f-transmission" name="transmission" {% if not filter_form.transmission.value %}data-empty{% endif %}>
+          {% for value, label in filter_form.fields.transmission.choices %}
+            <option value="{{ value }}" {% if filter_form.transmission.value == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="rail__group">
+        <label class="rail__legend" for="f-fuel">Combustível</label>
+        <select id="f-fuel" name="fuel" {% if not filter_form.fuel.value %}data-empty{% endif %}>
+          {% for value, label in filter_form.fields.fuel.choices %}
+            <option value="{{ value }}" {% if filter_form.fuel.value == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# a ordenação viaja junto para não se perder ao aplicar um filtro #}
+      <input type="hidden" name="sort" value="{{ filter_form.sort.value|default:'' }}">
+
+      <button type="submit" class="btn btn--primary btn--block rail__apply">Aplicar filtros</button>
+    </div>
+  </form>
+
+  {# --------------------------------------------------------------- vitrine #}
+  <section aria-label="Veículos">
+
+    <div class="resultbar">
+      <h1 class="resultbar__count">
+        <span class="resultbar__n">{{ page_obj.paginator.count|default:0 }}</span>
+        <span class="resultbar__unit">{{ page_obj.paginator.count|default:0|pluralize:"veículo,veículos" }}{% if active_filters %} · filtrados{% endif %}</span>
+      </h1>
+
+      <div class="resultbar__sort">
+        <label class="gauge-label" for="sort">Ordenar</label>
+        <select id="sort" name="sort" data-sort>
+          {% for value, label in filter_form.fields.sort.choices %}
+            <option value="{{ value }}" {% if filter_form.sort.value == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="tick-rule" aria-hidden="true" style="margin-bottom: var(--s5);"></div>
+
+    <div class="grid">
+      {% for car in cars %}
+        <article class="card">
+          <a href="{% url 'car_detail' car.pk %}" class="card__frame" aria-label="{{ car.title }}">
+            {% if car.photo %}
+              <img src="{{ car.photo.url }}" alt="{{ car.title }}" class="card__img"
+                   loading="lazy" width="400" height="300">
+            {% else %}
+              <span class="card__noimg">Sem foto</span>
+            {% endif %}
+
+            <span class="card__tags">
+              <span class="tag tag--{{ car.carStatus }}">{{ car.get_carStatus_display }}</span>
+            </span>
+
+            {% with shots=car.photos.count %}
+              {% if shots %}
+                <span class="card__shots">
+                  <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true">
+                    <path d="M2 4h2.5l1-1.5h5L11.5 4H14v9H2V4zm6 7.5A3 3 0 1 0 8 5.5a3 3 0 0 0 0 6z"/>
+                  </svg>
+                  {{ shots|add:1 }}
+                </span>
+              {% endif %}
+            {% endwith %}
+
+            <button type="button" class="card__fav" data-fav="{{ car.pk }}"
+                    aria-pressed="false" aria-label="Salvar {{ car.title }}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/>
+              </svg>
+            </button>
+          </a>
+
+          <div class="card__body">
+            <h2 class="card__name">
+              <a href="{% url 'car_detail' car.pk %}">{{ car.brandCar }} {{ car.modelCar }}</a>
+            </h2>
+
+            <div class="card__data">
+              <span>{{ car.factoryYear|unlocalize|default:"—" }}{% if car.modelYear and car.modelYear != car.factoryYear %}/{{ car.modelYear|unlocalize }}{% endif %}</span>
+              <i aria-hidden="true">·</i>
+              <span>{{ car.mileage|km }}</span>
+              {% if car.transmission %}
+                <i aria-hidden="true">·</i>
+                <span>{{ car.get_transmission_display }}</span>
+              {% endif %}
+              {% if car.fuel %}
+                <i aria-hidden="true">·</i>
+                <span>{{ car.get_fuel_display }}</span>
+              {% endif %}
+            </div>
+
+            <p class="card__price">
+              <span class="card__currency">R$</span>
+              <span class="card__value">{{ car.valueCar|brl }}</span>
+            </p>
+          </div>
+        </article>
+      {% empty %}
+        <div class="empty">
+          <h2 class="empty__title">
+            {% if active_filters %}Nenhum veículo com esses filtros{% else %}A vitrine está vazia{% endif %}
+          </h2>
+          <p class="empty__note">
+            {% if active_filters %}
+              Tente ampliar a faixa de preço ou de ano, ou remova um filtro.
+            {% else %}
+              Ainda não há anúncios publicados. Que tal ser o primeiro?
+            {% endif %}
+          </p>
+          {% if active_filters %}
+            <a href="{% url 'cars_list' %}" class="btn btn--ghost">Limpar filtros</a>
+          {% else %}
+            <a href="{% url 'new_car' %}" class="btn btn--primary">Anunciar meu carro</a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+      <nav class="pager" aria-label="Paginação">
+        {% if page_obj.has_previous %}
+          <a class="pager__link" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg> Anterior</a>
+        {% endif %}
+        <span class="pager__at">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="pager__link" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Próxima <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/catalog.js' %}" defer></script>{% endblock %}

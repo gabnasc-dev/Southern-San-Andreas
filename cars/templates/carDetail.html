@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% load static car_extras telefone_filters l10n %}
+
+{% block title %}{{ object.title }} {{ object.factoryYear|unlocalize }} — Southern San Andreas{% endblock %}
+{% block meta_description %}{{ object.title }} {{ object.factoryYear|unlocalize }} por R$ {{ object.valueCar|brl }}. {{ object.mileage|km }}.{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/detail.css' %}">{% endblock %}
+
+{% block content %}
+<nav class="crumbs" aria-label="Trilha">
+  <a href="{% url 'cars_list' %}">Vitrine</a>
+  <span aria-hidden="true">/</span>
+  <a href="{% url 'cars_list' %}?brand={{ object.brandCar.pk }}">{{ object.brandCar }}</a>
+  <span aria-hidden="true">/</span>
+  <span>{{ object.modelCar }}</span>
+</nav>
+
+<div class="detail">
+  <div>
+    {% with shots=object.gallery %}
+    <div class="gallery" data-gallery>
+      <div class="gallery__stage">
+        <span class="gallery__tags">
+          <span class="tag tag--{{ object.carStatus }}">{{ object.get_carStatus_display }}</span>
+        </span>
+
+        {% for shot in shots %}
+          <img src="{{ shot.url }}" alt="{{ object.title }} — foto {{ forloop.counter }} de {{ shots|length }}"
+               class="gallery__shot" data-active="{% if forloop.first %}true{% else %}false{% endif %}"
+               {% if not forloop.first %}loading="lazy"{% endif %} width="900" height="600">
+        {% empty %}
+          <span class="gallery__empty">Sem foto</span>
+        {% endfor %}
+
+        {% if shots|length > 1 %}
+          <button type="button" class="gallery__nav gallery__nav--prev" data-gallery-prev aria-label="Foto anterior">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <button type="button" class="gallery__nav gallery__nav--next" data-gallery-next aria-label="Próxima foto">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <span class="gallery__counter" data-gallery-counter>1 / {{ shots|length }}</span>
+        {% endif %}
+      </div>
+
+      {% if shots|length > 1 %}
+        <div class="gallery__strip" role="tablist" aria-label="Fotos do veículo">
+          {% for shot in shots %}
+            <button type="button" class="gallery__thumb" role="tab" data-gallery-thumb="{{ forloop.counter0 }}"
+                    aria-current="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-label="Ver foto {{ forloop.counter }}">
+              <img src="{{ shot.url }}" alt="" loading="lazy" width="88" height="66">
+            </button>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    {% endwith %}
+
+    <header class="lede">
+      <h1 class="lede__name">{{ object.brandCar }} {{ object.modelCar }}</h1>
+      <p class="lede__line">
+        <span>{{ object.factoryYear|unlocalize|default:"Ano não informado" }}{% if object.modelYear and object.modelYear != object.factoryYear %}/{{ object.modelYear|unlocalize }}{% endif %}</span>
+        <i aria-hidden="true">·</i>
+        <span>{{ object.mileage|km }}</span>
+        {% if object.color %}<i aria-hidden="true">·</i><span>{{ object.color }}</span>{% endif %}
+      </p>
+    </header>
+
+    <section class="section">
+      <div class="section__head">
+        <span class="section__title">Ficha técnica</span>
+        <span class="tick-rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="datasheet">
+        <div class="datacell">
+          <span class="datacell__key">Fabricação</span>
+          <span class="datacell__value{% if not object.factoryYear %} datacell__value--empty{% endif %}">{{ object.factoryYear|unlocalize|default:"Não informado" }}</span>
+        </div>
+        <div class="datacell">
+          <span class="datacell__key">Modelo</span>
+          <span class="datacell__value{% if not object.modelYear %} datacell__value--empty{% endif %}">{{ object.modelYear|unlocalize|default:"Não informado" }}</span>
+        </div>
+        <div class="datacell">
+          <span class="datacell__key">Quilometragem</span>
+          <span class="datacell__value{% if object.mileage is None %} datacell__value--empty{% endif %}">{{ object.mileage|km }}</span>
+        </div>
+        <div class="datacell">
+          <span class="datacell__key">Câmbio</span>
+          <span class="datacell__value{% if not object.transmission %} datacell__value--empty{% endif %}">{{ object.get_transmission_display|default:"Não informado" }}</span>
+        </div>
+        <div class="datacell">
+          <span class="datacell__key">Combustível</span>
+          <span class="datacell__value{% if not object.fuel %} datacell__value--empty{% endif %}">{{ object.get_fuel_display|default:"Não informado" }}</span>
+        </div>
+        <div class="datacell">
+          <span class="datacell__key">Cor</span>
+          <span class="datacell__value{% if not object.color %} datacell__value--empty{% endif %}">{{ object.color|default:"Não informada" }}</span>
+        </div>
+        <div class="datacell">
+          <span class="datacell__key">Estado</span>
+          <span class="datacell__value">{{ object.get_carStatus_display }}</span>
+        </div>
+        <div class="datacell">
+          <span class="datacell__key">Placa</span>
+          <span class="datacell__value{% if not object.plateCar %} datacell__value--empty{% endif %}">{{ object.plateCar|default:"Não informada" }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section__head">
+        <span class="section__title">Descrição</span>
+        <span class="tick-rule" aria-hidden="true"></span>
+      </div>
+      {% if object.bioCar %}
+        <p class="prose">{{ object.bioCar|linebreaksbr }}</p>
+      {% else %}
+        <p class="prose prose--muted">O anunciante não informou uma descrição para este veículo.</p>
+      {% endif %}
+    </section>
+
+    {% if related %}
+      <section class="section">
+        <div class="section__head">
+          <span class="section__title">Outros {{ object.brandCar }}</span>
+          <span class="tick-rule" aria-hidden="true"></span>
+        </div>
+        <div class="related">
+          {% for item in related %}
+            <a href="{% url 'car_detail' item.pk %}" class="related__item">
+              {% if item.photo %}
+                <img src="{{ item.photo.url }}" alt="" class="related__thumb" loading="lazy" width="68" height="51">
+              {% else %}
+                <span class="related__thumb"></span>
+              {% endif %}
+              <span>
+                <span class="related__name">{{ item.modelCar }}</span><br>
+                <span class="related__price">R$ {{ item.valueCar|brl }}</span>
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+  </div>
+
+  {# ------------------------------------------------------------- lateral #}
+  <aside class="aside">
+    <div class="readout">
+      <p class="readout__key">Preço pedido</p>
+      <p class="readout__value">
+        <span class="readout__currency">R$</span>
+        <span class="readout__amount">{{ object.valueCar|brl }}</span>
+      </p>
+      {# a graduação acesa é o traço em que a leitura se apoia #}
+      <span class="tick-rule tick-rule--lit readout__scale" aria-hidden="true"></span>
+      <p class="readout__note">Negocie diretamente com o vendedor.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel__body">
+        <div class="owner">
+          <span class="owner__badge">{{ object.carOwner.username|slice:":1"|default:"?" }}</span>
+          <span>
+            <span class="owner__name">{{ object.carOwner.username|default:"Anunciante" }}</span><br>
+            <span class="owner__meta">Vendedor particular</span>
+          </span>
+        </div>
+
+        <div class="contact">
+          <div class="contact__row">
+            <span class="contact__key">Telefone</span>
+            {% if object.carOwner.profile.telefone %}
+              <span class="contact__value">{{ object.carOwner.profile.telefone|format_telefone }}</span>
+            {% else %}
+              <span class="contact__value contact__value--empty">Não informado</span>
+            {% endif %}
+          </div>
+          <div class="contact__row">
+            <span class="contact__key">E-mail</span>
+            {% if object.carOwner.email %}
+              <span class="contact__value">{{ object.carOwner.email }}</span>
+            {% else %}
+              <span class="contact__value contact__value--empty">Não informado</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if object.carOwner.profile.telefone %}
+          <a href="https://wa.me/55{{ object.carOwner.profile.telefone|remove_chars }}?text={{ whatsapp_text|urlencode }}"
+             target="_blank" rel="noopener noreferrer" class="btn btn--go btn--block"
+             style="margin-top: var(--s4);">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden="true">
+              <path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.8 14.2c-.2.7-1.2 1.3-2 1.4-.5.1-1.2.1-3.7-.8-3.1-1.3-5.1-4.5-5.3-4.7-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1.1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .5-.1.7.5l1 2.4c.1.2.1.4 0 .6l-.4.6-.3.3c-.1.1-.2.3-.1.5.1.2.6 1.1 1.4 1.8 1 .9 1.8 1.2 2 1.3.2.1.4.1.5-.1l.8-.9c.2-.2.3-.2.5-.1l2.2 1.1c.2.1.4.2.5.3.1.2.1.7-.1 1.3z"/>
+            </svg>
+            Chamar no WhatsApp
+          </a>
+        {% else %}
+          <p class="safety" style="margin-top: var(--s4);">
+            Este anunciante não cadastrou telefone. Tente o e-mail acima.
+          </p>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if user.is_authenticated and user == object.carOwner %}
+      <div class="panel">
+        <div class="panel__head"><span class="gauge-label">Seu anúncio</span></div>
+        <div class="panel__body" style="display: grid; gap: var(--s3);">
+          <a href="{% url 'car_update' pk=object.pk %}" class="btn btn--ghost btn--block">Editar</a>
+          <a href="{% url 'car_delete' pk=object.pk %}" class="btn btn--danger btn--block">Excluir</a>
+        </div>
+      </div>
+    {% endif %}
+
+    <p class="safety">
+      Combine a vistoria em local público e confira a documentação antes de
+      qualquer pagamento. A Southern San Andreas não intermedeia a negociação.
+    </p>
+  </aside>
+</div>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/gallery.js' %}" defer></script>{% endblock %}

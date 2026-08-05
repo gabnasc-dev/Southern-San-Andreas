@@ -1,0 +1,18 @@
+# Apenas dependencias diretas. As transitivas (pydantic, httpx, anyio,
+# typing-extensions, etc.) sao resolvidas pelo pip a partir destas.
+#
+# O arquivo anterior era um dump de `pip freeze`, que pinava tambem as
+# transitivas — isso travava a instalacao em Python 3.14, porque
+# pydantic_core==2.33.2 e psycopg-binary==3.2.9 nao tem wheel para 3.14
+# e o pip tentava compilar via Rust.
+#
+# Testado em Python 3.13 e 3.14.
+
+Django==5.2.4
+dj-database-url==3.0.1
+python-decouple==3.8
+psycopg[binary]==3.2.13
+pillow==11.3.0
+whitenoise==6.10.0
+gunicorn==23.0.0
+mistralai==1.9.8

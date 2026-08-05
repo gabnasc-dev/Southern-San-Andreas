@@ -1,0 +1,106 @@
+/* ==========================================================================
+   Entrar / criar conta — porta lateral, não vitrine
+   ========================================================================== */
+
+.gate {
+  max-width: 420px;
+  margin: var(--s7) auto var(--s8);
+}
+
+.gate__head { margin-bottom: var(--s6); }
+
+.gate__eyebrow {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 650;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--amber-500);
+}
+
+.gate__title {
+  font-size: var(--t-h2);
+  font-stretch: 92%;
+  margin: var(--s2) 0 var(--s2);
+}
+
+.gate__note { color: var(--slate-400); font-size: var(--t-small); }
+
+.gate__panel {
+  background: var(--ink-800);
+  border: 1px solid var(--ink-600);
+  border-radius: var(--r-lg);
+  padding: var(--s5);
+}
+
+/* Aviso de conta de demonstração — âmbar por ser informação do painel, não
+   alerta: nada está errado, é só o site se apresentando como portfólio. */
+.demo-note {
+  border: 1px solid var(--amber-600);
+  border-radius: var(--r-lg);
+  background: var(--amber-wash);
+  padding: var(--s4);
+  margin-bottom: var(--s4);
+}
+
+.demo-note__title {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber-500);
+  margin-bottom: var(--s2);
+}
+
+.demo-note__body {
+  font-size: var(--t-small);
+  color: var(--slate-200);
+  line-height: 1.6;
+  margin-bottom: var(--s3);
+}
+
+.demo-note__body code {
+  font-family: inherit;
+  font-weight: 650;
+  color: var(--amber-300);
+  background: var(--ink-900);
+  border: 1px solid var(--ink-600);
+  border-radius: var(--r-sm);
+  padding: 1px var(--s2);
+  white-space: nowrap;
+}
+
+.demo-note__fill { width: 100%; }
+
+.gate__alt {
+  margin-top: var(--s5);
+  padding-top: var(--s5);
+  border-top: 1px solid var(--ink-600);
+  text-align: center;
+  font-size: var(--t-small);
+  color: var(--slate-400);
+}
+
+.gate__alt a { color: var(--amber-500); font-weight: 600; }
+.gate__alt a:hover { text-decoration: underline; }
+
+/* A ajuda de senha do Django vem como <ul>; sem isto herda o marcador */
+.gate__panel .field__help ul,
+.field__help ul {
+  list-style: none;
+  display: grid;
+  gap: 2px;
+  margin-top: var(--s1);
+}
+
+.field__help li { position: relative; padding-left: var(--s3); }
+.field__help li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 3px;
+  height: 3px;
+  background: var(--slate-500);
+}

@@ -1,0 +1,54 @@
+{# Formulário do anúncio, agrupado por seção. Compartilhado por cadastro e edição. #}
+{% if form.non_field_errors %}
+  <div class="form-errors" role="alert">
+    <ul>{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+
+<fieldset class="form-section">
+  <legend class="form-section__title">
+    <span>O veículo</span><span class="tick-rule" aria-hidden="true"></span>
+  </legend>
+  <div class="field-grid">
+    {% include "_field.html" with field=form.brandCar %}
+    {% include "_field.html" with field=form.modelCar %}
+    {% include "_field.html" with field=form.factoryYear %}
+    {% include "_field.html" with field=form.modelYear %}
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend class="form-section__title">
+    <span>Especificações</span><span class="tick-rule" aria-hidden="true"></span>
+  </legend>
+  <div class="field-grid">
+    {% include "_field.html" with field=form.mileage %}
+    {% include "_field.html" with field=form.transmission %}
+    {% include "_field.html" with field=form.fuel %}
+    {% include "_field.html" with field=form.color %}
+    {% include "_field.html" with field=form.carStatus %}
+    {% include "_field.html" with field=form.plateCar %}
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend class="form-section__title">
+    <span>Preço</span><span class="tick-rule" aria-hidden="true"></span>
+  </legend>
+  {% include "_field.html" with field=form.valueCar %}
+</fieldset>
+
+<fieldset class="form-section">
+  <legend class="form-section__title">
+    <span>Fotos</span><span class="tick-rule" aria-hidden="true"></span>
+  </legend>
+  {% include "_field.html" with field=form.photo %}
+  {% include "_field.html" with field=form.extra_photos %}
+</fieldset>
+
+<fieldset class="form-section">
+  <legend class="form-section__title">
+    <span>Descrição</span><span class="tick-rule" aria-hidden="true"></span>
+  </legend>
+  {% include "_field.html" with field=form.bioCar %}
+</fieldset>

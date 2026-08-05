@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Anunciar carro — Southern San Andreas{% endblock %}
+{% block page_modifier %}page--narrow{% endblock %}
+
+{% block content %}
+<header style="margin-bottom: var(--s6);">
+  <p class="gauge-label">Novo anúncio</p>
+  <h1 style="font-size: var(--t-h1); font-stretch: 92%; margin: var(--s2) 0 var(--s3);">
+    Anuncie seu carro
+  </h1>
+  <p style="color: var(--slate-400); max-width: 56ch;">
+    Preencha o que souber. Só marca, modelo, ano e preço são obrigatórios —
+    o resto ajuda o comprador a decidir, mas pode ficar em branco.
+  </p>
+</header>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {% include "_carform.html" %}
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn--primary btn--lg">Publicar anúncio</button>
+    <a href="{% url 'cars_list' %}" class="btn btn--ghost btn--lg">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

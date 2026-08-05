@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load car_extras l10n %}
+
+{% block title %}Excluir {{ object.title }} — Southern San Andreas{% endblock %}
+{% block page_modifier %}page--narrow{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="panel__head">
+    <p class="gauge-label" style="color: var(--signal-stop);">Confirmar exclusão</p>
+  </div>
+
+  <div class="panel__body">
+    <h1 style="font-size: var(--t-h2); font-stretch: 92%; margin-bottom: var(--s3);">
+      Excluir este anúncio?
+    </h1>
+    <p style="color: var(--slate-400); margin-bottom: var(--s5); max-width: 54ch;">
+      O anúncio sai da vitrine imediatamente e não há como desfazer.
+      As fotos enviadas também são removidas.
+    </p>
+
+    <div style="display:flex; gap:var(--s4); align-items:center; padding:var(--s4); background:var(--ink-700); border:1px solid var(--ink-600); border-radius:var(--r-md); margin-bottom:var(--s5);">
+      {% if object.photo %}
+        <img src="{{ object.photo.url }}" alt="" width="96" height="72"
+             style="width:96px; aspect-ratio:4/3; object-fit:cover; border-radius:var(--r-sm);">
+      {% endif %}
+      <div>
+        <span class="gauge-label">{{ object.brandCar }}</span>
+        <p style="font-size:var(--t-lead); font-weight:600; color:var(--white);">{{ object.modelCar }}</p>
+        <p style="font-size:var(--t-small); color:var(--slate-400);">
+          {{ object.factoryYear|unlocalize|default:"—" }} · {{ object.mileage|km }} ·
+          <span style="color:var(--amber-500); font-weight:600;">R$ {{ object.valueCar|brl }}</span>
+        </p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-actions" style="margin-top:0; border-top:0; padding-top:0;">
+        <button type="submit" class="btn btn--danger btn--lg">Sim, excluir</button>
+        <a href="{% url 'car_detail' object.pk %}" class="btn btn--ghost btn--lg">Manter anúncio</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Southern San Andreas{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Marketplace de carros usados entre particulares. Encontre o carro e fale direto com o vendedor.{% endblock %}">
+  <meta name="theme-color" content="#0F1216">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+<!--
+  THESIS: Um marketplace de carros lido como painel de instrumentos à noite, não
+  como catálogo claro de classificados. Recusa a grade branca-e-azul que a
+  categoria sempre entrega, e recusa também o "dark premium com dourado
+  brilhando" que é o oposto previsível.
+  OWN-WORLD: Chão #0F1216, painéis em chapa escura, fios de 1px. Âmbar #E8B33A
+  usado como retroiluminação de mostrador — só onde haveria luz: o preço, o
+  filtro ativo, a régua sob o título. Réguas de tique como as de um velocímetro
+  dividem as seções. Archivo variável: eixo de largura estreito faz o rótulo de
+  mostrador, largura normal faz a leitura. Cantos de 2-4px; nada arredondado.
+  STORY: O comprador escaneia preço e foto, estreita por câmbio/combustível/faixa,
+  abre a ficha técnica, e sai no WhatsApp do vendedor.
+  FIRST VIEWPORT: Trilho de filtros à esquerda (264px), barra de resultados com
+  contagem e ordenação no topo da vitrine, grade de cards densa à direita. O
+  preço é o elemento mais claro de cada card.
+  FORM: Painel de instrumentos + ficha técnica. Direção fixada pelo usuário
+  (estrutura Webmotors + pele Southern San Andreas); sorteio dispensado por
+  pino do usuário — a derivação material é que evitou a rendição padrão.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="masthead">
+    <div class="masthead__inner">
+      <a href="{% url 'cars_list' %}" class="wordmark">
+        <span class="wordmark__mark">Southern<em>·</em>San Andreas</span>
+        <span class="wordmark__sub">Autos</span>
+      </a>
+
+      <nav class="masthead__nav" aria-label="Navegação principal">
+        <div class="masthead__links">
+          <a href="{% url 'cars_list' %}" class="navlink"
+             {% if request.resolver_match.url_name == 'cars_list' %}aria-current="page"{% endif %}>
+            Vitrine
+          </a>
+
+          {% if user.is_authenticated %}
+            <a href="{% url 'my_cars' %}" class="navlink"
+               {% if request.resolver_match.url_name == 'my_cars' %}aria-current="page"{% endif %}>
+              Meus anúncios
+            </a>
+            <a href="{% url 'profile_update' %}" class="navlink">{{ user.username }}</a>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+              {% csrf_token %}
+              <button type="submit" class="navlink">Sair</button>
+            </form>
+          {% else %}
+            <a href="{% url 'login' %}" class="navlink">Entrar</a>
+            <a href="{% url 'register' %}" class="navlink navlink--ghost">Criar conta</a>
+          {% endif %}
+        </div>
+
+        {# fora da faixa rolável: é a entrada do vendedor no produto #}
+        <a href="{% url 'new_car' %}" class="navlink navlink--primary">Anunciar carro</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo" class="page {% block page_modifier %}{% endblock %}">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="message message--{{ message.tags|default:'info' }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="colophon">
+    <div class="colophon__inner">
+      <div>
+        <span class="wordmark__mark">Southern<em>·</em>San Andreas</span>
+        <p class="colophon__note">
+          Marketplace entre particulares. Os anúncios são de responsabilidade de
+          quem os publica — combine a vistoria e o pagamento diretamente com o vendedor.
+        </p>
+      </div>
+      <p class="colophon__note">Projeto de portfólio &middot; {% now "Y" %}</p>
+    </div>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

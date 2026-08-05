@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Meus dados — Southern San Andreas{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}">{% endblock %}
+
+{% block content %}
+<div class="gate">
+  <header class="gate__head">
+    <p class="gate__eyebrow">{{ request.user.username }}</p>
+    <h1 class="gate__title">Meus dados</h1>
+    <p class="gate__note">
+      É por aqui que o comprador fala com você. Sem telefone, o botão de
+      WhatsApp não aparece nos seus anúncios.
+    </p>
+  </header>
+
+  <div class="gate__panel">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="form-errors" role="alert">
+          <ul>{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        </div>
+      {% endif %}
+
+      {% include "_field.html" with field=form.telefone %}
+      {% include "_field.html" with field=form.email %}
+
+      <button type="submit" class="btn btn--primary btn--block btn--lg">Salvar</button>
+    </form>
+
+    <p class="gate__alt">
+      <a href="{% url 'my_cars' %}">Ver meus anúncios</a>
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/telefone-mask.js' %}" defer></script>{% endblock %}

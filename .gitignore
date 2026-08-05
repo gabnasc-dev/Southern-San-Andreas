@@ -1,0 +1,21 @@
+venv/
+.venv/
+env/
+*.pyc
+__pycache__/
+db.sqlite3
+dev.sqlite3
+*.sqlite3
+.env
+staticfiles/
+.idea/
+.vscode/
+*.log
+.DS_Store
+
+# Uploads em tempo de execução. Em produção este diretório é um volume
+# persistente montado pela plataforma. O acervo de fotos da demonstração NÃO
+# fica aqui — está em demo_assets/, versionado, e o comando `seed_demo` copia
+# para cá. Um volume montado esconderia qualquer arquivo versionado neste
+# caminho, então as fotos precisam vir de fora.
+media/

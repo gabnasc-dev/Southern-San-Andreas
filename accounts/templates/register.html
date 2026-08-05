@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Criar conta — Southern San Andreas{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}">{% endblock %}
+
+{% block content %}
+<div class="gate">
+  <header class="gate__head">
+    <p class="gate__eyebrow">Área do anunciante</p>
+    <h1 class="gate__title">Criar conta</h1>
+    <p class="gate__note">
+      Leva um minuto. Depois é só cadastrar o carro e o anúncio entra na vitrine.
+    </p>
+  </header>
+
+  <div class="gate__panel">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if userForm.non_field_errors %}
+        <div class="form-errors" role="alert">
+          <ul>{% for error in userForm.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        </div>
+      {% endif %}
+
+      {% for field in userForm %}
+        {% include "_field.html" with field=field %}
+      {% endfor %}
+
+      <button type="submit" class="btn btn--primary btn--block btn--lg">Criar conta</button>
+    </form>
+
+    <p class="gate__alt">
+      Já tem conta? <a href="{% url 'login' %}">Entrar</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

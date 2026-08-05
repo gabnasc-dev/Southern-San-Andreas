@@ -1,0 +1,676 @@
+/* ==========================================================================
+   Southern San Andreas — sistema visual
+   Mundo: painel de instrumentos à noite + ficha técnica de revista.
+   O âmbar não é ouro decorativo: é retroiluminação de mostrador. Aparece
+   onde haveria luz — o valor, o indicador ativo, a régua sob o título.
+   ========================================================================== */
+
+:root {
+  /* --- Chapa e vidro: do fundo do painel até o texto iluminado --- */
+  --ink-950: #080A0D;   /* poço, atrás de tudo */
+  --ink-900: #0F1216;   /* chão da página */
+  --ink-800: #14181E;   /* painel */
+  --ink-700: #1A1F27;   /* painel elevado, campo de formulário */
+  --ink-600: #232935;   /* borda forte, divisor de peso */
+  --ink-500: #2E3542;   /* borda padrão */
+  --ink-400: #3C4552;   /* traço de régua */
+
+  --slate-500: #5E6878; /* texto desativado */
+  --slate-400: #7B8595; /* rótulo, meta */
+  --slate-300: #9BA5B4; /* texto secundário */
+  --slate-200: #C3CAD5; /* corpo */
+  --slate-100: #E4E8EE; /* corpo forte */
+  --white: #F5F7FA;     /* título */
+
+  /* --- Âmbar: a luz do mostrador --- */
+  --amber-600: #B98A1C;
+  --amber-500: #E8B33A;
+  --amber-400: #F4C866;
+  --amber-300: #FBDD9B;
+  --amber-glow: rgba(232, 179, 58, 0.16);
+  --amber-wash: rgba(232, 179, 58, 0.07);
+
+  /* --- Luzes de aviso do painel --- */
+  --signal-go: #38C172;
+  --signal-go-hi: #45D482;
+  --signal-go-ink: #06210F;  /* texto sobre a superfície verde */
+  --signal-go-wash: rgba(56, 193, 114, 0.12);
+  --signal-stop: #E5484D;
+  --signal-stop-wash: rgba(229, 72, 77, 0.12);
+  --signal-warn: #E8913A;
+  --signal-warn-wash: rgba(232, 145, 58, 0.12);
+
+  /* --- Tipografia: Archivo variável. O eixo de largura faz o papel da
+         letra condensada de mostrador sem trazer uma segunda família. --- */
+  --face: 'Archivo', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --t-micro: 0.6875rem;  /* 11px — rótulo caixa-alta */
+  --t-small: 0.8125rem;  /* 13px — meta, ajuda */
+  --t-body: 0.9375rem;   /* 15px — corpo */
+  --t-lead: 1.125rem;    /* 18px — entrada */
+  --t-h3: 1.375rem;      /* 22px */
+  --t-h2: 1.75rem;       /* 28px */
+  --t-h1: 2.25rem;       /* 36px */
+  --t-display: 3.5rem;   /* 56px — leitura de valor */
+
+  /* --- Malha de 4px --- */
+  --s1: 0.25rem;
+  --s2: 0.5rem;
+  --s3: 0.75rem;
+  --s4: 1rem;
+  --s5: 1.5rem;
+  --s6: 2rem;
+  --s7: 3rem;
+  --s8: 4rem;
+
+  /* --- Véus sobre foto: escurecem a imagem para o texto sobreposto ler --- */
+  --scrim: rgba(8, 10, 13, 0.72);
+  --scrim-strong: rgba(8, 10, 13, 0.82);
+
+  /* --- Raio: quase reto. Painel de instrumento não é arredondado.
+         --r-pill é a única exceção, reservada a contadores circulares. --- */
+  --r-sm: 2px;
+  --r-md: 3px;
+  --r-lg: 4px;
+  --r-pill: 999px;
+
+  /* Canal alfa de máscara — só a opacidade importa, não é cor da paleta */
+  --mask-on: #000;
+
+  --shell: 1440px;
+  --rail: 264px;
+}
+
+/* --- Reset --- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+
+/* Sem font-size fixo: a escala em rem parte do tamanho que o visitante
+   configurou no navegador. Travar em 16px anularia quem aumentou a fonte. */
+html {
+  font-family: var(--face);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-900);
+  color: var(--slate-200);
+  font-size: var(--t-body);
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { display: block; max-width: 100%; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+
+h1, h2, h3, h4 {
+  color: var(--white);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+/* --- Régua de mostrador: o motivo que amarra o sistema.
+       Duas camadas, como uma escala de velocímetro: traços menores a cada 8px
+       e uma graduação maior, mais alta e mais clara, a cada 40px. --- */
+.tick-rule {
+  height: 10px;
+  background-image:
+    repeating-linear-gradient(90deg, var(--slate-500) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, var(--ink-400) 0 1px, transparent 1px 8px);
+  background-size: 100% 10px, 100% 5px;
+  background-position: 0 0, 0 0;
+  background-repeat: repeat-x;
+  -webkit-mask-image: linear-gradient(90deg, var(--mask-on) 0%, var(--mask-on) 55%, transparent 100%);
+  mask-image: linear-gradient(90deg, var(--mask-on) 0%, var(--mask-on) 55%, transparent 100%);
+}
+
+/* Régua acesa: usada sob o preço, onde a leitura acontece. A graduação
+   maior marca o ponto em que o valor se apoia. */
+.tick-rule--lit {
+  background-image:
+    repeating-linear-gradient(90deg, var(--amber-500) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, var(--amber-600) 0 1px, transparent 1px 8px);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* --- Aquecimento do painel: as graduações e as leituras sobem do escuro
+       uma vez, no carregamento. É o gesto nativo do mundo — o mostrador
+       acendendo. O estado final é o visível, então sem animação nada quebra
+       (a regra de prefers-reduced-motion acima zera a duração). --- */
+@keyframes dial-warmup {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes dial-sweep {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+.tick-rule { animation: dial-sweep 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+
+.card__price,
+.readout__value {
+  animation: dial-warmup 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s backwards;
+}
+
+/* --- Rótulo de mostrador: caixa-alta, estreito, espaçado --- */
+.gauge-label {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate-400);
+}
+
+/* --- Acessibilidade --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    /* Zerar o delay é obrigatório junto com a duração: com animation-fill-mode
+       backwards, um delay sobrevivente segura o estado inicial (opacity 0) e o
+       preço fica invisível justamente para quem pediu menos movimento. */
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--amber-500);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  background: var(--amber-500);
+  color: var(--ink-950);
+  padding: var(--s3) var(--s4);
+  font-weight: 600;
+  z-index: 200;
+}
+.skip-link:focus { left: var(--s4); top: var(--s4); }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Cabeçalho
+   ========================================================================== */
+
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--ink-950);
+  border-bottom: 1px solid var(--ink-600);
+}
+
+.masthead__inner {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: 0 var(--s5);
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: var(--s5);
+}
+
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  flex-shrink: 0;
+}
+
+.wordmark__mark {
+  font-size: var(--t-lead);
+  font-weight: 700;
+  font-stretch: 80%;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+.wordmark__mark em {
+  font-style: normal;
+  color: var(--amber-500);
+}
+
+.wordmark__sub {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--slate-500);
+}
+
+.masthead__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  margin-left: auto;
+}
+
+.navlink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  /* O "Sair" é um <button> dentro de um form (logout precisa ser POST).
+     Sem este reset ele herda a moldura e o fundo padrão do navegador e
+     aparece como uma caixa clara no meio dos links. */
+  font: inherit;
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--slate-300);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  border-radius: var(--r-md);
+  transition: color 0.15s, background-color 0.15s;
+}
+.navlink:hover { color: var(--white); background: var(--ink-800); }
+.navlink[aria-current="page"] { color: var(--amber-500); }
+
+.navlink--ghost {
+  border: 1px solid var(--ink-500);
+}
+
+/* O botão de publicar é a única superfície âmbar do cabeçalho */
+.navlink--primary {
+  background: var(--amber-500);
+  color: var(--ink-950);
+  font-weight: 650;
+}
+.navlink--primary:hover { background: var(--amber-400); color: var(--ink-950); }
+
+.logout-form { display: inline-flex; margin: 0; }
+
+/* ==========================================================================
+   Estrutura
+   ========================================================================== */
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: var(--s6) var(--s5) var(--s8);
+}
+
+.page--narrow { max-width: 760px; }
+
+/* ==========================================================================
+   Trilha
+   ========================================================================== */
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2);
+  margin-bottom: var(--s5);
+  font-size: var(--t-small);
+  color: var(--slate-400);
+}
+.crumbs a { color: var(--slate-300); }
+.crumbs a:hover { color: var(--amber-500); }
+
+.crumbs__back { display: inline-flex; align-items: center; gap: var(--s2); }
+
+/* ==========================================================================
+   Mensagens
+   ========================================================================== */
+
+.messages { list-style: none; display: grid; gap: var(--s2); margin-bottom: var(--s5); }
+
+.message {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--ink-500);
+  border-radius: var(--r-md);
+  background: var(--ink-800);
+  font-size: var(--t-small);
+  color: var(--slate-100);
+}
+.message--success { border-color: var(--signal-go); background: var(--signal-go-wash); }
+.message--error { border-color: var(--signal-stop); background: var(--signal-stop-wash); }
+.message--warning { border-color: var(--signal-warn); background: var(--signal-warn-wash); }
+.message--info, .message--debug { border-color: var(--amber-600); background: var(--amber-wash); }
+
+/* ==========================================================================
+   Botões
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  padding: var(--s3) var(--s5);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  font-size: var(--t-small);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  background: none;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.btn--primary { background: var(--amber-500); color: var(--ink-950); }
+.btn--primary:hover { background: var(--amber-400); }
+
+.btn--ghost { border-color: var(--ink-500); color: var(--slate-200); }
+.btn--ghost:hover { border-color: var(--slate-500); color: var(--white); }
+
+.btn--danger { border-color: var(--signal-stop); color: var(--signal-stop); }
+.btn--danger:hover { background: var(--signal-stop); color: var(--white); }
+
+.btn--go { background: var(--signal-go); color: var(--signal-go-ink); }
+.btn--go:hover { background: var(--signal-go-hi); }
+
+.btn--block { width: 100%; }
+.btn--lg { padding: var(--s4) var(--s6); font-size: var(--t-body); }
+
+/* ==========================================================================
+   Painéis e fichas técnicas
+   ========================================================================== */
+
+.panel {
+  background: var(--ink-800);
+  border: 1px solid var(--ink-600);
+  border-radius: var(--r-lg);
+}
+
+.panel__head {
+  padding: var(--s4) var(--s5);
+  border-bottom: 1px solid var(--ink-600);
+}
+
+.panel__body { padding: var(--s5); }
+
+/* Ficha técnica: pares rótulo/valor com fio, como tabela de revista */
+.spec-list { display: grid; gap: 0; }
+
+.spec-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--ink-600);
+}
+.spec-row:last-child { border-bottom: 0; }
+
+.spec-row__key {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate-400);
+  white-space: nowrap;
+}
+
+.spec-row__value {
+  font-size: var(--t-body);
+  font-weight: 550;
+  color: var(--slate-100);
+  text-align: right;
+}
+
+.spec-row__value--empty { color: var(--slate-300); font-weight: 400; }
+
+/* ==========================================================================
+   Etiquetas de estado
+   ========================================================================== */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: 3px var(--s2);
+  border-radius: var(--r-sm);
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+/* As etiquetas ficam sobre a foto, então o fundo precisa ser opaco: com o
+   "wash" translúcido, "Novo" (verde claro) sumia sobre carroceria clara. */
+.tag--novo { color: var(--signal-go); border-color: var(--signal-go); background: var(--ink-950); }
+.tag--seminovo { color: var(--amber-400); border-color: var(--amber-600); background: var(--ink-950); }
+.tag--usado { color: var(--slate-300); border-color: var(--ink-500); background: var(--ink-950); }
+
+/* ==========================================================================
+   Formulários
+   ========================================================================== */
+
+.field { display: grid; gap: var(--s2); margin-bottom: var(--s5); }
+
+.field__label {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--slate-300);
+}
+
+.field__label .req { color: var(--amber-500); margin-left: 2px; }
+
+.field__help { font-size: var(--t-small); color: var(--slate-300); }
+
+.field__error {
+  font-size: var(--t-small);
+  color: var(--signal-stop);
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.field input[type="text"],
+.field input[type="number"],
+.field input[type="email"],
+.field input[type="password"],
+.field input[type="url"],
+.field select,
+.field textarea,
+.input {
+  width: 100%;
+  padding: var(--s3) var(--s3);
+  background: var(--ink-700);
+  border: 1px solid var(--ink-500);
+  border-radius: var(--r-md);
+  color: var(--slate-100);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+/* slate-500 fica reservado a desabilitado: em placeholder dava ~2.9:1 */
+.field input::placeholder, .input::placeholder { color: var(--slate-300); }
+
+.field input:focus, .field select:focus, .field textarea:focus, .input:focus {
+  outline: none;
+  border-color: var(--amber-500);
+  background: var(--ink-800);
+}
+
+.field textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+.field input[type="file"] {
+  width: 100%;
+  padding: var(--s3);
+  background: var(--ink-700);
+  border: 1px dashed var(--ink-500);
+  border-radius: var(--r-md);
+  font-size: var(--t-small);
+  color: var(--slate-400);
+}
+
+.field input[type="file"]::file-selector-button {
+  margin-right: var(--s3);
+  padding: var(--s1) var(--s3);
+  background: var(--ink-600);
+  border: 1px solid var(--ink-500);
+  border-radius: var(--r-sm);
+  color: var(--slate-200);
+  font-size: var(--t-small);
+  cursor: pointer;
+}
+
+.field--invalid input, .field--invalid select, .field--invalid textarea {
+  border-color: var(--signal-stop);
+}
+
+/* align-items: start impede que um campo com linha de ajuda estique o
+   vizinho: sem isso as duas colunas saem de alinhamento sempre que só um
+   lado tem help text. */
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 0 var(--s4);
+}
+
+
+.form-errors {
+  border: 1px solid var(--signal-stop);
+  border-radius: var(--r-md);
+  background: var(--signal-stop-wash);
+  padding: var(--s4);
+  margin-bottom: var(--s5);
+}
+.form-errors ul { list-style: none; display: grid; gap: var(--s2); }
+.form-errors li { font-size: var(--t-small); color: var(--slate-100); }
+
+.form-actions {
+  display: flex;
+  gap: var(--s3);
+  padding-top: var(--s5);
+  margin-top: var(--s5);
+  border-top: 1px solid var(--ink-600);
+}
+
+/* Fieldset com legenda em régua.
+   O <fieldset> vem com moldura de sulco do navegador e a legenda entalhada
+   nela — contradiz "fios de 1px, chapa lisa". Zerar a borda também remove o
+   entalhe, então a régua atravessa inteira. min-width:0 impede que o
+   fieldset force largura pelo conteúdo, que é um velho bug de flex/grid. */
+.form-section {
+  margin-bottom: var(--s7);
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.form-section__title {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: 100%;
+  padding: 0;
+  margin-bottom: var(--s5);
+}
+
+.form-section__title span {
+  font-size: var(--t-micro);
+  font-stretch: 88%;
+  font-weight: 650;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber-500);
+  white-space: nowrap;
+}
+
+.form-section__title .tick-rule { flex: 1; }
+
+/* ==========================================================================
+   Rodapé
+   ========================================================================== */
+
+.colophon {
+  margin-top: auto;
+  border-top: 1px solid var(--ink-600);
+  background: var(--ink-950);
+}
+
+.colophon__inner {
+  max-width: var(--shell);
+  margin: 0 auto;
+  padding: var(--s6) var(--s5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s4);
+}
+
+.colophon__note { font-size: var(--t-small); color: var(--slate-400); max-width: 46ch; }
+
+/* ==========================================================================
+   Responsivo
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  .masthead__inner { height: auto; padding: var(--s3) var(--s4); flex-wrap: wrap; }
+
+  /* Só os links secundários rolam. O CTA de anunciar fica fora da faixa
+     rolável, senão ele some na borda direita e o vendedor perde a entrada
+     do produto sem nenhuma pista de que existe algo além. */
+  .masthead__nav {
+    width: 100%;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--s2);
+    align-items: center;
+  }
+
+  .masthead__links {
+    display: flex;
+    align-items: center;
+    gap: var(--s1);
+    overflow-x: auto;
+    padding-bottom: var(--s1);
+    scrollbar-width: none;
+  }
+  .masthead__links::-webkit-scrollbar { display: none; }
+
+  .navlink { white-space: nowrap; }
+  .navlink--primary { flex-shrink: 0; }
+  .page { padding: var(--s5) var(--s4) var(--s7); }
+  .field-grid { grid-template-columns: 1fr; }
+  .form-actions { flex-direction: column-reverse; }
+  .form-actions .btn { width: 100%; }
+}
+
+@media (max-width: 560px) {
+  :root { --t-display: 2.5rem; --t-h1: 1.75rem; }
+  .wordmark__sub { display: none; }
+}
