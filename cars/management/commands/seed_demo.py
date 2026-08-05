@@ -123,9 +123,30 @@ class Command(BaseCommand):
             '--password', default='demo-southern-2026',
             help='Senha das contas de demonstração.',
         )
+        parser.add_argument(
+            '--only-photos', action='store_true',
+            help='Só copia o acervo para o MEDIA_ROOT, sem tocar no banco. '
+                 'Usado no build: permite popular o banco de outra máquina '
+                 '(o banco é remoto, o disco não).',
+        )
+
+    def handle(self, *args, **options):
+        # O acervo vai para o disco sempre, inclusive no modo --only-photos:
+        # o banco pode ser populado de qualquer máquina, mas as fotos só
+        # existem onde o processo roda.
+        copiadas = _publicar_fotos(self.stdout)
+        self.stdout.write(f'  {copiadas} fotos copiadas para {settings.MEDIA_ROOT}')
+
+        if options['only_photos']:
+            self.stdout.write(self.style.SUCCESS(
+                'Somente fotos: banco não alterado.'
+            ))
+            return
+
+        self._popular(options)
 
     @transaction.atomic
-    def handle(self, *args, **options):
+    def _popular(self, options):
         senha = options['password']
 
         if options['flush']:
@@ -134,9 +155,6 @@ class Command(BaseCommand):
             ).delete()
             User.objects.filter(username__endswith='.demo').delete()
             self.stdout.write(f'  removidos {apagados} registros da demo anterior')
-
-        copiadas = _publicar_fotos(self.stdout)
-        self.stdout.write(f'  {copiadas} fotos copiadas para {settings.MEDIA_ROOT}')
 
         vendedores = []
         for username, nome, email, telefone in VENDEDORES:

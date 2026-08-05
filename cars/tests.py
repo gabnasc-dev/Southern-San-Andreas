@@ -335,3 +335,33 @@ class SeedDemoCommandTests(TestCase):
         from io import StringIO
         call_command('seed_demo', '--flush', stdout=StringIO())
         self.assertEqual(Car.objects.count(), 14)
+
+    def test_only_photos_nao_toca_no_banco(self):
+        """Permite popular o banco de outra máquina: o banco é remoto e
+        acessível, o disco do serviço não é."""
+        from django.core.management import call_command
+        from io import StringIO
+        Car.objects.all().delete()
+        User.objects.filter(username__endswith='.demo').delete()
+
+        saida = StringIO()
+        call_command('seed_demo', '--only-photos', stdout=saida)
+
+        self.assertEqual(Car.objects.count(), 0)
+        self.assertFalse(User.objects.filter(username__endswith='.demo').exists())
+        self.assertIn('banco não alterado', saida.getvalue())
+
+    def test_only_photos_publica_o_acervo(self):
+        import shutil
+        from pathlib import Path
+        from django.conf import settings
+        from django.core.management import call_command
+        from io import StringIO
+
+        destino = Path(settings.MEDIA_ROOT) / 'cars'
+        if destino.exists():
+            shutil.rmtree(destino)
+
+        call_command('seed_demo', '--only-photos', stdout=StringIO())
+        self.assertTrue(destino.is_dir())
+        self.assertTrue(any(destino.iterdir()), 'nenhuma foto publicada')

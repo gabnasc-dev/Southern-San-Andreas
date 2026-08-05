@@ -29,6 +29,13 @@ python manage.py migrate --noinput
 SEED_NORM=$(printf '%s' "${SEED_DEMO:-}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
 
 echo "--- Carga inicial ---"
+
+# O acervo de fotos vai para o disco em todo deploy, independentemente do seed.
+# É idempotente (não sobrescreve o que já existe) e barato. Fica fora do
+# controle do SEED_DEMO porque o banco pode ser populado de outra máquina —
+# o banco é remoto e acessível, o disco do serviço não é.
+python manage.py seed_demo --only-photos
+
 echo "SEED_DEMO recebido: '${SEED_DEMO:-<vazio>}' (normalizado: '${SEED_NORM}')"
 
 case "${SEED_NORM}" in
