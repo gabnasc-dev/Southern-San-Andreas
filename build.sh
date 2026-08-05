@@ -22,9 +22,25 @@ python manage.py migrate --noinput
 # SEED_DEMO=true  -> publica o catálogo de demonstração.
 # Rode uma vez e depois remova a variável: o comando é idempotente, mas
 # mantê-lo ligado desfaz qualquer edição feita nos anúncios de exemplo.
-if [ "${SEED_DEMO}" = "true" ]; then
-  python manage.py seed_demo --password "${DEMO_PASSWORD:-demo-southern-2026}"
-fi
+#
+# A comparação é insensível a maiúsculas e aceita 1/yes/sim: a variável é
+# digitada à mão no painel da plataforma, e um "True" silenciosamente ignorado
+# custa um ciclo inteiro de deploy para descobrir.
+SEED_NORM=$(printf '%s' "${SEED_DEMO:-}" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+
+echo "--- Carga inicial ---"
+echo "SEED_DEMO recebido: '${SEED_DEMO:-<vazio>}' (normalizado: '${SEED_NORM}')"
+
+case "${SEED_NORM}" in
+  true|1|yes|sim|y|s)
+    echo "Publicando o catálogo de demonstração..."
+    python manage.py seed_demo --password "${DEMO_PASSWORD:-demo-southern-2026}"
+    ;;
+  *)
+    echo "SEED_DEMO não ativo; catálogo não alterado."
+    echo "Para popular, defina SEED_DEMO=true e faça um novo deploy."
+    ;;
+esac
 
 # DJANGO_SUPERUSER_USERNAME + DJANGO_SUPERUSER_PASSWORD -> cria/atualiza o admin.
 # Sem elas o comando não faz nada. Depois de criar a conta, remova as variáveis:
