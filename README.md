@@ -153,7 +153,69 @@ Para exibir a credencial de demonstração na tela de login, defina `DEMO_USER` 
 
 ---
 
-## Deploy no Railway ou Render
+## Deploy no Render (plano gratuito)
+
+Precisa de um Postgres externo — o do próprio Render é apagado depois de 30
+dias no plano gratuito. Use o **Neon** (neon.tech), que é gratuito sem prazo.
+
+### Serviço
+
+**New → Web Service** → conecte o repositório e configure:
+
+| Campo | Valor |
+|---|---|
+| Build Command | `./build.sh` |
+| Start Command | `gunicorn app.wsgi --bind 0.0.0.0:$PORT` |
+| Instance Type | Free |
+
+### Variáveis
+
+| Variável | Valor |
+|---|---|
+| `SECRET_KEY` | gere uma nova, 50+ caracteres |
+| `DEBUG` | `False` |
+| `DATABASE_URL` | a connection string do Neon |
+| `PYTHON_VERSION` | `3.13.1` |
+| `DEMO_USER` / `DEMO_PASSWORD` | opcional, exibe a credencial no login |
+
+`ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS` são preenchidos a partir do
+`RENDER_EXTERNAL_HOSTNAME`, que o Render injeta sozinho.
+
+### Carga inicial sem terminal
+
+O plano gratuito não dá acesso a shell, então o `build.sh` faz o trabalho —
+mas só quando você pede. Adicione **temporariamente**:
+
+| Variável | Valor |
+|---|---|
+| `SEED_DEMO` | `true` |
+| `DJANGO_SUPERUSER_USERNAME` | seu usuário de admin |
+| `DJANGO_SUPERUSER_PASSWORD` | uma senha forte |
+| `DJANGO_SUPERUSER_EMAIL` | opcional |
+
+Faça um deploy manual e **remova as quatro depois**. Motivos:
+
+- com `SEED_DEMO=true` ligado, todo deploy desfaz edições feitas nos anúncios
+  de exemplo;
+- a senha do admin fica visível no painel enquanto a variável existir.
+
+O `ensure_superuser` é idempotente — rodar de novo atualiza a senha em vez de
+falhar, que é o que o `createsuperuser --noinput` faria (derrubando o build).
+
+### Limitações do plano gratuito
+
+**O serviço dorme** após ~15 minutos sem acesso; o primeiro request depois
+disso leva cerca de 50 segundos.
+
+**Não há disco persistente.** Uploads feitos por visitantes desaparecem no
+próximo deploy. As fotos da demonstração **não** são afetadas: vêm de
+`demo_assets/`, versionado, e o `seed_demo` as recria. Se precisar que os
+uploads sobrevivam, o caminho é um storage externo (S3, R2, Cloudinary) ou uma
+plataforma com disco.
+
+---
+
+## Deploy no Railway
 
 O projeto já traz `Procfile`, `build.sh` e `.python-version`.
 

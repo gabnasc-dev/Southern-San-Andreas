@@ -84,3 +84,58 @@ class TelefoneFilterTests(TestCase):
 
     def test_remove_chars_vazio(self):
         self.assertEqual(remove_chars(None), '')
+
+
+class EnsureSuperuserCommandTests(TestCase):
+    """No plano gratuito do Render não há shell: este comando roda no build,
+    a cada deploy, então precisa ser idempotente."""
+
+    def _rodar(self, **env):
+        from django.core.management import call_command
+        from io import StringIO
+        from unittest.mock import patch
+        import os
+        with patch.dict(os.environ, env, clear=False):
+            saida = StringIO()
+            call_command('ensure_superuser', stdout=saida)
+            return saida.getvalue()
+
+    def test_sem_variaveis_nao_cria_nada(self):
+        import os
+        limpo = {k: '' for k in (
+            'DJANGO_SUPERUSER_USERNAME', 'DJANGO_SUPERUSER_PASSWORD',
+        )}
+        self._rodar(**limpo)
+        self.assertFalse(User.objects.filter(is_superuser=True).exists())
+
+    def test_cria_o_superusuario(self):
+        self._rodar(
+            DJANGO_SUPERUSER_USERNAME='chefe',
+            DJANGO_SUPERUSER_PASSWORD='senha-forte-123',
+            DJANGO_SUPERUSER_EMAIL='chefe@example.com',
+        )
+        user = User.objects.get(username='chefe')
+        self.assertTrue(user.is_superuser)
+        self.assertTrue(user.is_staff)
+        self.assertTrue(user.check_password('senha-forte-123'))
+        self.assertEqual(user.email, 'chefe@example.com')
+
+    def test_rodar_de_novo_nao_quebra(self):
+        """createsuperuser --noinput falharia aqui e derrubaria o build."""
+        env = dict(
+            DJANGO_SUPERUSER_USERNAME='chefe',
+            DJANGO_SUPERUSER_PASSWORD='senha-forte-123',
+        )
+        self._rodar(**env)
+        self._rodar(**env)
+        self.assertEqual(User.objects.filter(username='chefe').count(), 1)
+
+    def test_atualiza_a_senha_de_conta_existente(self):
+        User.objects.create_user(username='chefe', password='antiga')
+        self._rodar(
+            DJANGO_SUPERUSER_USERNAME='chefe',
+            DJANGO_SUPERUSER_PASSWORD='nova-senha-123',
+        )
+        user = User.objects.get(username='chefe')
+        self.assertTrue(user.check_password('nova-senha-123'))
+        self.assertTrue(user.is_superuser)
