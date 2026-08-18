@@ -153,42 +153,6 @@ Para exibir a credencial de demonstração na tela de login, defina `DEMO_USER` 
 
 ---
 
-### Banco de dados em produção
-
-Qualquer Postgres gerenciado funciona — basta definir `DATABASE_URL`. Serviços comuns:
-Neon, Supabase, Railway, Render. A maioria exige SSL, então acrescente `?sslmode=require`
-ao final da URL.
-
-Migrar do SQLite de desenvolvimento para o Postgres de produção é só rodar `migrate`
-apontando para o novo banco — não é preciso transferir dados, já que o SQLite local
-serve apenas para testes.
-
-### Arquivos de mídia
-
-As fotos enviadas pelos usuários ficam em `media/`. O `urls.py` tem um fallback que serve
-esses arquivos pelo próprio Django quando `DEBUG=False`, para o site não quebrar — mas isso
-é ineficiente e **só funciona onde o disco é persistente** (VPS, Railway com volume, Render
-com disk).
-
-Em servidor próprio, o recomendado é um alias no nginx:
-
-```nginx
-location /media/ {
-    alias /var/www/carros/media/;
-}
-```
-
-> **Atenção em plataformas serverless (Vercel, Netlify, Cloud Run):** o filesystem é
-> efêmero. As fotos enviadas pelos usuários são apagadas a cada deploy — e, no caso da
-> Vercel, entre invocações. Como este projeto é centrado em fotos de carros, hospedar lá
-> **exige** um storage externo antes: S3, Cloudflare R2, Supabase Storage ou Cloudinary
-> (via `django-storages`). Sem isso, todo upload se perde.
->
-> Se a ideia é o caminho mais curto, uma plataforma com disco persistente
-> (Railway, Render, Fly.io) ou uma VPS evita esse trabalho inteiro.
-
----
-
 ## Estrutura do projeto
 
 ```
